@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="costante">
+<meta name="theme-color" content="#12151A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312151A'/%3E%3Cpath d='M16 6c3 4 5 6 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 3 3-1-3 0-6 0-9z' fill='%23E1B15A'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>costante</title>
+<style>
+  :root{
+    color-scheme: dark;
+    --bg:#12151A; --bg2:#1A1F27; --bg3:#242A34; --line:#2C333E;
+    --text:#ECE9E1; --muted:#8A93A0; --gold:#E1B15A;
+    --read:#E1B15A; --think:#AFA0E6; --python:#79C58C; --diet:#66B8C2; --gym:#E58A7B;
+    --r-lg:20px; --r-md:16px; --r-sm:10px;
+    --elev: inset 0 1px 0 rgba(255,255,255,.045), 0 1px 2px rgba(0,0,0,.32), 0 6px 16px rgba(0,0,0,.20);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;background:var(--bg);}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:var(--text); line-height:1.5;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  }
+  .wrap{max-width:440px;margin:0 auto;padding:22px 18px 104px;}
+  button{font:inherit;}
+
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .brand{font-size:22px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;}
+  .brand .p{color:var(--python);}
+  .streak{display:flex;align-items:center;gap:7px;background:var(--bg2);box-shadow:var(--elev);padding:8px 13px;border-radius:100px;font-weight:600;font-size:15px;font-variant-numeric:tabular-nums;}
+  .streak svg{width:15px;height:16px;display:block;}
+
+  .lvl{background:var(--bg2);box-shadow:var(--elev);border-radius:var(--r-md);padding:14px 16px;}
+  .lvl-top{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;color:var(--muted);margin-bottom:10px;font-variant-numeric:tabular-nums;}
+  .lvl-top b{color:var(--text);font-size:15px;}
+  .bar{height:7px;background:var(--bg);border-radius:100px;overflow:hidden;}
+  .bar span{display:block;height:100%;background:var(--gold);border-radius:100px;transition:width .35s ease;}
+
+  .week{display:flex;justify-content:space-between;gap:6px;margin:18px 2px;}
+  .day{flex:1;text-align:center;}
+  .day .lab{font-size:11px;color:var(--muted);margin-bottom:6px;}
+  .day .cell{height:30px;border-radius:9px;background:var(--bg2);display:flex;align-items:center;justify-content:center;}
+  .day .cell.on{background:var(--bg3);}
+  .day .cell.full{background:rgba(225,177,90,.15);}
+  .day.today .cell{box-shadow:inset 0 0 0 1.5px var(--muted);}
+  .day .cell .m{width:6px;height:6px;border-radius:50%;background:var(--muted);}
+  .day .cell.full .m{background:var(--gold);}
+
+  .h{font-size:13px;color:var(--muted);margin:24px 2px 12px;display:flex;justify-content:space-between;align-items:baseline;}
+  .h .date{color:var(--text);}
+
+  .card{background:var(--bg2);box-shadow:var(--elev);border-radius:var(--r-md);padding:16px;margin-bottom:11px;display:flex;gap:13px;align-items:flex-start;transition:opacity .2s ease;}
+  .card.done{opacity:.5;}
+  .tick{flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:2px solid var(--muted);background:transparent;cursor:pointer;margin-top:2px;position:relative;padding:0;transition:background-color .18s ease,border-color .18s ease,transform .1s ease;}
+  .tick:active{transform:scale(.94);}
+  .tick.read{border-color:var(--read);} .tick.think{border-color:var(--think);} .tick.python{border-color:var(--python);} .tick.diet{border-color:var(--diet);} .tick.gym{border-color:var(--gym);}
+  .tick.on::after{content:"";position:absolute;left:8px;top:4px;width:6px;height:11px;border:solid var(--bg);border-width:0 2.5px 2.5px 0;transform:rotate(43deg);}
+  .tick.on.read{background:var(--read);} .tick.on.think{background:var(--think);} .tick.on.python{background:var(--python);} .tick.on.diet{background:var(--diet);} .tick.on.gym{background:var(--gym);}
+  .body{flex:1;min-width:0;}
+  .tag{font-size:16px;font-weight:700;margin-bottom:6px;line-height:1.25;font-variant-numeric:tabular-nums;}
+  .tag.read{color:var(--read);} .tag.think{color:var(--think);} .tag.python{color:var(--python);} .tag.diet{color:var(--diet);} .tag.gym{color:var(--gym);}
+  .task{font-size:15px;text-wrap:pretty;}
+  .sub{font-size:13.5px;color:var(--muted);margin-top:4px;text-wrap:pretty;}
+  .sub b{color:var(--text);font-weight:600;}
+  .nudge{font-size:12.5px;color:var(--gold);margin-top:7px;font-variant-numeric:tabular-nums;}
+  .pyok{color:var(--python);font-weight:700;}
+  .pydone{font-size:12.5px;color:var(--muted);margin-top:10px;font-variant-numeric:tabular-nums;}
+  .undo{background:none;border:none;color:var(--gold);font:inherit;font-size:12.5px;cursor:pointer;padding:0 0 0 8px;text-decoration:underline;}
+  .solbtn{background:none;border:1px solid var(--line);color:var(--python);font:inherit;font-size:13px;font-weight:600;border-radius:100px;padding:7px 14px;margin-top:12px;cursor:pointer;transition:transform .1s ease,border-color .15s ease;}
+  .solbtn:active{transform:scale(.96);}
+  .solbtn:hover{border-color:var(--python);}
+  .code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:13px;line-height:1.6;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 13px;margin-top:11px;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:pre;color:var(--text);tab-size:4;}
+  .code[hidden]{display:none;}
+
+  .pagerow{display:flex;align-items:center;gap:10px;margin-top:12px;}
+  .pagerow label{font-size:13.5px;color:var(--muted);}
+  .pages{width:74px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--text);font:inherit;font-size:16px;padding:8px 10px;text-align:center;font-variant-numeric:tabular-nums;transition:border-color .15s ease;}
+  .pages:focus{outline:none;border-color:var(--gold);}
+  .note{width:100%;margin-top:10px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--text);font:inherit;font-size:16px;line-height:1.5;padding:10px 11px;resize:none;overflow:hidden;transition:border-color .15s ease;}
+  .note::placeholder{color:var(--muted);}
+  .note:focus{outline:none;border-color:var(--gold);}
+  .facolt{font-size:11.5px;color:var(--muted);margin-top:6px;text-wrap:pretty;}
+
+  .pieno{background:rgba(121,197,140,.12);border:1px solid var(--python);color:var(--python);border-radius:var(--r-sm);padding:11px 14px;font-size:14px;font-weight:600;text-align:center;margin-bottom:11px;text-wrap:balance;}
+
+  .pyprog{background:var(--bg2);box-shadow:var(--elev);border-radius:var(--r-md);padding:14px 16px;margin-top:15px;}
+  .pyprog .r{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);margin-bottom:10px;font-variant-numeric:tabular-nums;}
+  .pyprog .r b{color:var(--python);}
+  .pyprog .bar span{background:var(--python);}
+
+  .ach{margin-top:24px;}
+  .ach-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;}
+  .badge{background:var(--bg2);border-radius:12px;padding:12px 13px;opacity:.45;transition:opacity .2s ease;}
+  .badge.got{opacity:1;box-shadow:inset 0 0 0 1px var(--gold);}
+  .badge .n{font-size:14px;font-weight:600;}
+  .badge .dsc{font-size:12px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums;text-wrap:pretty;}
+
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin:6px 2px 16px;}
+  .cal-title{font-size:17px;font-weight:600;text-wrap:balance;}
+  .cal-nav{background:var(--bg2);box-shadow:var(--elev);color:var(--text);border:none;width:38px;height:38px;border-radius:11px;font-size:19px;cursor:pointer;transition:transform .1s ease;}
+  .cal-nav:active{transform:scale(.94);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-wd{text-align:center;font-size:11px;color:var(--muted);padding-bottom:2px;}
+  .cal-day{aspect-ratio:1;border-radius:9px;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-size:13.5px;font-variant-numeric:tabular-nums;transition:transform .1s ease;}
+  .cal-day:active{transform:scale(.94);}
+  .cal-day.empty{background:none;cursor:default;}
+  .cal-day.future{opacity:.4;}
+  .cal-day.today{box-shadow:inset 0 0 0 1.5px var(--muted);}
+  .cal-day .dots{display:flex;gap:2px;height:5px;}
+  .cal-day .dt{width:5px;height:5px;border-radius:50%;}
+  .cal-legend{display:flex;justify-content:center;gap:16px;margin-top:18px;font-size:12.5px;color:var(--muted);}
+  .cal-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .cal-legend i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  .sec-title{font-size:16px;font-weight:700;margin:22px 2px 12px;}
+  .sec-title:first-child{margin-top:6px;}
+  .up{background:var(--bg2);border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;gap:12px;}
+  .up .when{flex:0 0 66px;font-size:12.5px;color:var(--muted);padding-top:1px;font-variant-numeric:tabular-nums;}
+  .up .what{flex:1;font-size:14.5px;text-wrap:pretty;}
+  .up.next{box-shadow:inset 0 0 0 1px var(--python);}
+  .up .step{font-size:12px;color:var(--python);font-weight:600;margin-bottom:3px;font-variant-numeric:tabular-nums;}
+  .remaining{font-size:12.5px;color:var(--muted);text-align:center;margin-top:8px;font-variant-numeric:tabular-nums;}
+
+  .nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(21,25,31,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:20;}
+  .nav button{flex:1;background:none;border:none;color:var(--muted);padding:10px 0 9px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:color .15s ease,transform .1s ease;}
+  .nav button:active{transform:scale(.96);}
+  .nav button.on{color:var(--gold);}
+  .nav svg{width:23px;height:23px;display:block;}
+
+  #modal:empty{display:none;}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50;}
+  .sheet{background:var(--bg2);box-shadow:0 -1px 0 rgba(255,255,255,.05),0 -8px 40px rgba(0,0,0,.55);border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;max-width:440px;padding:18px 18px calc(22px + env(safe-area-inset-bottom));animation:up .22s cubic-bezier(.2,0,0,1);}
+  @keyframes up{from{transform:translateY(24px);opacity:.3;}to{transform:none;opacity:1;}}
+  .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .sheet-head .t{font-size:16px;font-weight:600;text-wrap:balance;}
+  .sheet-head .x{background:var(--bg3);border:none;color:var(--text);width:31px;height:31px;border-radius:50%;font-size:16px;cursor:pointer;transition:transform .1s ease;}
+  .sheet-head .x:active{transform:scale(.94);}
+  .rc-row{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);}
+  .rc-row:last-child{border-bottom:none;}
+  .rc-mark{width:13px;height:13px;border-radius:4px;margin-top:3px;flex:0 0 auto;background:var(--bg3);}
+  .rc-mark.on.read{background:var(--read);} .rc-mark.on.think{background:var(--think);} .rc-mark.on.python{background:var(--python);}
+  .rc-lab{font-weight:700;font-size:14px;margin-bottom:3px;}
+  .rc-lab.read{color:var(--read);} .rc-lab.think{color:var(--think);} .rc-lab.python{color:var(--python);}
+  .rc-txt{font-size:14px;text-wrap:pretty;}
+  .rc-extra{font-size:13px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums;}
+  .rc-note{font-size:13.5px;line-height:1.5;background:var(--bg);border-radius:var(--r-sm);padding:9px 11px;margin-top:7px;text-wrap:pretty;}
+
+  .topicons{display:flex;align-items:center;gap:8px;}
+  .iconbtn{background:var(--bg2);box-shadow:var(--elev);border:none;color:var(--muted);width:38px;height:38px;border-radius:100px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .1s ease,color .15s ease;}
+  .iconbtn:active{transform:scale(.94);}
+  .iconbtn.on{color:var(--gold);}
+  .iconbtn svg{width:18px;height:18px;}
+  .resbtn{display:block;width:100%;background:var(--bg2);box-shadow:var(--elev);border:none;color:var(--gold);font:inherit;font-size:14px;font-weight:600;border-radius:var(--r-md);padding:13px;margin-bottom:16px;cursor:pointer;transition:transform .1s ease;}
+  .resbtn:active{transform:scale(.98);}
+  .overlay.res{align-items:stretch;}
+  .respage{background:var(--bg);width:100%;max-width:440px;height:100%;overflow-y:auto;padding:18px 18px calc(24px + env(safe-area-inset-bottom));animation:up .22s cubic-bezier(.2,0,0,1);}
+  .resnav{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 2px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0;}
+  .chip{background:var(--bg3);border:none;color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;border-radius:100px;padding:6px 12px;cursor:pointer;transition:transform .1s ease;}
+  .chip:active{transform:scale(.95);}
+  .chip.on{background:var(--gold);color:#17130a;}
+  .cg-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;}
+  .cg-labels{display:flex;gap:3px;margin-bottom:5px;}
+  .cg-m{width:11px;flex:0 0 11px;font-size:10px;line-height:1;color:var(--muted);white-space:nowrap;}
+  .cg{display:flex;gap:3px;}
+  .cg-col{display:flex;flex-direction:column;gap:3px;}
+  .cg-cell{width:11px;height:11px;flex:0 0 11px;border-radius:2px;}
+  .cg-leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:14px;}
+  .cg-leg .lg{width:11px;height:11px;border-radius:2px;display:inline-block;}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="modal"></div>
+
+<script>
+const K="costante_v2";
+
+const PYTHON=[
+ {t:"Il primo script",i:"Come scrivere ed eseguire un file Python.",c:"Crea un file prova.py con dentro print('ciao') ed eseguilo.",s:["print('ciao')"]},
+ {t:"Le variabili",i:"Salvare un valore dentro un nome per riusarlo.",c:"Crea citta = 'Milano' e stampala con print(citta).",s:["citta = 'Milano'","print(citta)"]},
+ {t:"Numeri e testo",i:"La differenza tra un numero e una stringa di testo.",c:"Crea eta = 30 e stampa 'Ho ' + str(eta) + ' anni'.",s:["eta = 30","print('Ho ' + str(eta) + ' anni')"]},
+ {t:"Chiedere dati",i:"Leggere qualcosa scritto da chi usa il programma.",c:"Usa nome = input('Come ti chiami? ') e poi salutalo.",s:["nome = input('Come ti chiami? ')","print('Ciao ' + nome)"]},
+ {t:"La calcolatrice",i:"Fare operazioni tra numeri presi in input.",c:"Chiedi due numeri e stampa la somma (usa int() sull'input).",s:["a = int(input('Primo numero: '))","b = int(input('Secondo numero: '))","print(a + b)"]},
+ {t:"Le condizioni",i:"Far decidere al programma con if.",c:"Chiedi un numero e stampa se è pari o dispari.",s:["n = int(input('Numero: '))","if n % 2 == 0:","    print('pari')","else:","    print('dispari')"]},
+ {t:"if, elif, else",i:"Gestire più casi diversi.",c:"Chiedi un voto da 0 a 10 e stampa basso, medio o alto.",s:["voto = int(input('Voto: '))","if voto <= 4:","    print('basso')","elif voto <= 7:","    print('medio')","else:","    print('alto')"]},
+ {t:"Vero o falso",i:"I valori booleani e i confronti.",c:"Stampa il risultato di 5 > 3 e di 2 == 4.",s:["print(5 > 3)","print(2 == 4)"]},
+ {t:"Ripetere con while",i:"Ripetere qualcosa finché serve.",c:"Stampa i numeri da 1 a 10 usando un ciclo while.",s:["n = 1","while n <= 10:","    print(n)","    n += 1"]},
+ {t:"Ripetere con for",i:"Scorrere una sequenza con for e range.",c:"Stampa la tabellina del 7 con un ciclo for.",s:["for i in range(1, 11):","    print(7 * i)"]},
+ {t:"Le liste",i:"Tenere più valori insieme in ordine.",c:"Crea una lista di 3 città e stampale una alla volta.",s:["citta = ['Milano', 'Roma', 'Napoli']","for c in citta:","    print(c)"]},
+ {t:"Modificare le liste",i:"Aggiungere elementi e contarli.",c:"Parti da lista vuota, aggiungi 3 nomi con append e stampa quanti sono.",s:["nomi = []","nomi.append('Anna')","nomi.append('Luca')","nomi.append('Sara')","print(len(nomi))"]},
+ {t:"I dizionari",i:"Collegare una chiave a un valore.",c:"Crea un dizionario con nome ed età di una persona e stampali.",s:["persona = {'nome': 'Anna', 'eta': 30}","print(persona['nome'])","print(persona['eta'])"]},
+ {t:"Scorrere un dizionario",i:"Leggere tutte le coppie chiave e valore.",c:"Fai un dizionario di 3 prodotti col prezzo e stampali con un for.",s:["prezzi = {'pane': 2.0, 'latte': 1.5, 'caffe': 3.0}","for prodotto, prezzo in prezzi.items():","    print(prodotto, prezzo)"]},
+ {t:"Le funzioni",i:"Dare un nome a un blocco di codice da riusare.",c:"Scrivi una funzione saluta(nome) e chiamala due volte.",s:["def saluta(nome):","    print('Ciao ' + nome)","","saluta('Anna')","saluta('Luca')"]},
+ {t:"Restituire un valore",i:"Far tornare un risultato con return.",c:"Scrivi somma(a, b) che restituisce a + b, poi stampa somma(4, 5).",s:["def somma(a, b):","    return a + b","","print(somma(4, 5))"]},
+ {t:"Frasi ordinate",i:"Le f-string per unire testo e variabili.",c:"Con eta = 30 stampa f'Ho {eta} anni'.",s:["eta = 30","print(f'Ho {eta} anni')"]},
+ {t:"Quando va storto",i:"Gestire gli errori con try ed except.",c:"Chiedi un numero e gestisci il caso in cui scrivono lettere.",s:["try:","    n = int(input('Numero: '))","    print(n * 2)","except ValueError:","    print('Non e un numero')"]},
+ {t:"Leggere un file",i:"Aprire e leggere un file di testo.",c:"Crea a mano note.txt, poi leggilo e stampalo dal programma.",s:["f = open('note.txt')","testo = f.read()","f.close()","print(testo)"]},
+ {t:"Scrivere un file",i:"Salvare del testo dentro un file.",c:"Scrivi tre righe dentro un file diario.txt dal programma.",s:["f = open('diario.txt', 'w')","f.write('riga uno\\n')","f.write('riga due\\n')","f.write('riga tre\\n')","f.close()"]},
+ {t:"Le date",i:"Lavorare con date e orari (modulo datetime).",c:"Stampa la data di oggi con datetime.date.today().",s:["import datetime","print(datetime.date.today())"]},
+ {t:"Il caso",i:"Generare numeri casuali (modulo random).",c:"Stampa un numero casuale tra 1 e 100.",s:["import random","print(random.randint(1, 100))"]},
+ {t:"Comprensioni di lista",i:"Costruire una lista in una riga sola.",c:"Crea la lista dei quadrati da 1 a 10 in una sola riga.",s:["quadrati = [n * n for n in range(1, 11)]","print(quadrati)"]},
+ {t:"Dividere il lavoro",i:"Spezzare un programma in tante funzioni piccole.",c:"Riprendi la calcolatrice e metti ogni operazione in una funzione.",s:["def somma(a, b):","    return a + b","","def sottrai(a, b):","    return a - b","","print(somma(4, 5))","print(sottrai(9, 2))"]},
+ {t:"JSON",i:"Salvare e ricaricare dati strutturati.",c:"Salva un dizionario in un file .json e poi ricaricalo.",s:["import json","dati = {'nome': 'Anna', 'eta': 30}","with open('dati.json', 'w') as f:","    json.dump(dati, f)","with open('dati.json') as f:","    print(json.load(f))"]},
+ {t:"To-do, parte 1",i:"Il menu di una lista di cose da fare.",c:"Fai un menu: 1 aggiungi, 2 mostra, 3 esci, dentro un ciclo.",s:["while True:","    print('1 aggiungi  2 mostra  3 esci')","    scelta = input('Scelta: ')","    if scelta == '3':","        break"]},
+ {t:"To-do, parte 2",i:"Aggiungere e mostrare le voci.",c:"Fai funzionare aggiungi e mostra, tenendo le voci in una lista.",s:["voci = []","while True:","    scelta = input('1 aggiungi  2 mostra  3 esci: ')","    if scelta == '1':","        voci.append(input('Cosa: '))","    elif scelta == '2':","        for v in voci:","            print(v)","    elif scelta == '3':","        break"]},
+ {t:"To-do, parte 3",i:"Non perdere i dati alla chiusura.",c:"Salva le voci in un file json e ricaricale all'avvio.",s:["import json","try:","    with open('voci.json') as f:","        voci = json.load(f)","except FileNotFoundError:","    voci = []","with open('voci.json', 'w') as f:","    json.dump(voci, f)"]},
+ {t:"To-do, parte 4",i:"Completare ed eliminare le voci.",c:"Aggiungi le opzioni per segnare fatto ed eliminare una voce.",s:["i = int(input('Quale eliminare (numero)? '))","if 0 <= i < len(voci):","    voci.pop(i)","    print('Eliminata')"]},
+ {t:"Rileggere il codice",i:"Capire davvero cosa hai scritto.",c:"Rileggi tutto il progetto to-do e spiega a parole tue cosa fa.",s:["# Non c'e codice qui: rileggi il tuo to-do","# e scrivi, riga per riga, cosa fa ognuna."]},
+ {t:"Pezzi di lista",i:"Prendere parti di una lista con lo slicing.",c:"Da una lista di 6 numeri stampa i primi 3 e la lista al contrario.",s:["numeri = [10, 20, 30, 40, 50, 60]","print(numeri[:3])","print(numeri[::-1])"]},
+ {t:"Pezzi di testo",i:"Lo slicing funziona anche sulle stringhe.",c:"Da una parola stampa le prime 3 lettere e la parola invertita.",s:["parola = 'python'","print(parola[:3])","print(parola[::-1])"]},
+ {t:"Lavorare col testo",i:"Metodi come upper, lower, strip e split.",c:"Prendi una frase e spezzala nelle sue parole con split().",s:["frase = 'oggi studio python'","parole = frase.split()","print(parole)"]},
+ {t:"Unire il testo",i:"Il metodo join per unire una lista in una stringa.",c:"Unisci una lista di parole mettendo un trattino tra loro.",s:["parole = ['uno', 'due', 'tre']","print('-'.join(parole))"]},
+ {t:"Indice e valore",i:"enumerate per avere posizione e valore insieme.",c:"Stampa una lista con davanti il numero d'ordine di ogni voce.",s:["nomi = ['Anna', 'Luca', 'Sara']","for i, nome in enumerate(nomi, start=1):","    print(i, nome)"]},
+ {t:"Due liste insieme",i:"zip per accoppiare due liste.",c:"Accoppia una lista di nomi con una di età e stampale.",s:["nomi = ['Anna', 'Luca']","eta = [30, 25]","for nome, e in zip(nomi, eta):","    print(nome, e)"]},
+ {t:"Dizionari dentro dizionari",i:"Strutture dati annidate.",c:"Fai una rubrica: nome che punta a un dizionario con telefono e città.",s:["rubrica = {","    'Anna': {'telefono': '333', 'citta': 'Milano'},","    'Luca': {'telefono': '347', 'citta': 'Roma'},","}","print(rubrica['Anna']['citta'])"]},
+ {t:"Valori mancanti",i:"Il metodo get per non andare in errore.",c:"Leggi da un dizionario una chiave che non c'è usando get con un default.",s:["persona = {'nome': 'Anna'}","print(persona.get('eta', 'non indicata'))"]},
+ {t:"Valori unici",i:"I set tengono solo elementi diversi.",c:"Togli i doppioni da una lista trasformandola in set.",s:["numeri = [1, 2, 2, 3, 3, 3]","print(set(numeri))"]},
+ {t:"Le tuple",i:"Gruppi di valori che non cambiano.",c:"Crea una coppia (x, y) e spacchettala in due variabili.",s:["punto = (3, 5)","x, y = punto","print(x, y)"]},
+ {t:"Parametri opzionali",i:"Dare un valore di default a un argomento.",c:"Scrivi saluta(nome, saluto='Ciao') e chiamala nei due modi.",s:["def saluta(nome, saluto='Ciao'):","    print(saluto, nome)","","saluta('Anna')","saluta('Anna', 'Buongiorno')"]},
+ {t:"Argomenti a nome",i:"Chiamare una funzione indicando i nomi.",c:"Chiama una tua funzione passando gli argomenti con nome=valore.",s:["def scheda(nome, eta):","    print(nome, eta)","","scheda(nome='Anna', eta=30)"]},
+ {t:"Quanti ne vuoi",i:"*args per un numero variabile di argomenti.",c:"Scrivi una funzione che somma quanti numeri le passi.",s:["def somma(*numeri):","    return sum(numeri)","","print(somma(1, 2, 3, 4))"]},
+ {t:"Più risultati",i:"Restituire più valori con return a, b.",c:"Scrivi una funzione che restituisce minimo e massimo di una lista.",s:["def minmax(lista):","    return min(lista), max(lista)","","print(minmax([4, 1, 9, 3]))"]},
+ {t:"Funzioni corte",i:"Le lambda, funzioni di una riga.",c:"Ordina una lista di parole in base alla loro lunghezza con una lambda.",s:["parole = ['casa', 'a', 'ciao']","parole.sort(key=lambda p: len(p))","print(parole)"]},
+ {t:"Ordinare con criterio",i:"sorted con la chiave key.",c:"Ordina una lista di dizionari in base a un loro campo.",s:["persone = [{'nome': 'Anna', 'eta': 30}, {'nome': 'Luca', 'eta': 25}]","print(sorted(persone, key=lambda p: p['eta']))"]},
+ {t:"Trasformare e filtrare",i:"map e filter sulle liste.",c:"Da una lista di numeri, tieni solo i pari e raddoppiali.",s:["numeri = [1, 2, 3, 4, 5, 6]","pari = filter(lambda n: n % 2 == 0, numeri)","doppi = list(map(lambda n: n * 2, pari))","print(doppi)"]},
+ {t:"I moduli",i:"Usare codice già pronto con import.",c:"Importa math e stampa la radice quadrata di 144.",s:["import math","print(math.sqrt(144))"]},
+ {t:"Il tuo modulo",i:"Mettere le tue funzioni in un file a parte.",c:"Crea utils.py con una funzione e importala in un altro file.",s:["# utils.py","def saluta(nome):","    return 'Ciao ' + nome","","# main.py","from utils import saluta","print(saluta('Anna'))"]},
+ {t:"Installare librerie",i:"Il comando pip per aggiungere strumenti.",c:"Installa una libreria semplice e stampa la sua versione.",s:["# nel terminale:","# pip install requests","import requests","print(requests.__version__)"]},
+ {t:"Ambiente pulito",i:"Un ambiente virtuale per ogni progetto.",c:"Crea un ambiente virtuale con venv e attivalo.",s:["# nel terminale:","python -m venv venv","# attiva su Windows:","venv\\Scripts\\activate","# attiva su Mac o Linux:","source venv/bin/activate"]},
+ {t:"Leggere una tabella",i:"Il modulo csv per i dati a colonne.",c:"Crea un piccolo file csv e leggilo riga per riga.",s:["import csv","with open('dati.csv') as f:","    for riga in csv.reader(f):","        print(riga)"]},
+ {t:"Scrivere una tabella",i:"Salvare righe di dati in csv.",c:"Salva una lista di 3 righe (nome, età) in un file csv.",s:["import csv","righe = [['Anna', 30], ['Luca', 25], ['Sara', 40]]","with open('dati.csv', 'w', newline='') as f:","    csv.writer(f).writerows(righe)"]},
+ {t:"Contare i giorni",i:"Fare i conti con le date.",c:"Calcola quanti giorni mancano a una data che scegli tu.",s:["import datetime","oggi = datetime.date.today()","obiettivo = datetime.date(2026, 12, 31)","print((obiettivo - oggi).days)"]},
+ {t:"Date su misura",i:"Formattare una data con strftime.",c:"Stampa la data di oggi nel formato gg/mm/aaaa.",s:["import datetime","oggi = datetime.date.today()","print(oggi.strftime('%d/%m/%Y'))"]},
+ {t:"Le classi, parte 1",i:"Creare un tuo tipo di oggetto.",c:"Definisci una classe Persona con dentro solo il nome.",s:["class Persona:","    nome = 'Anna'","","p = Persona()","print(p.nome)"]},
+ {t:"Le classi, parte 2",i:"Dare dei metodi agli oggetti.",c:"Aggiungi a Persona un metodo presentati() che stampa il nome.",s:["class Persona:","    nome = 'Anna'","    def presentati(self):","        print('Sono', self.nome)","","Persona().presentati()"]},
+ {t:"Le classi, parte 3",i:"Il costruttore __init__ con gli attributi.",c:"Fai Persona(nome, eta) e crea due persone diverse.",s:["class Persona:","    def __init__(self, nome, eta):","        self.nome = nome","        self.eta = eta","","a = Persona('Anna', 30)","b = Persona('Luca', 25)","print(a.nome, b.nome)"]},
+ {t:"Le classi, parte 4",i:"Gestire tanti oggetti insieme.",c:"Metti tre Persona in una lista e stampa i loro nomi con un for.",s:["persone = [Persona('Anna', 30), Persona('Luca', 25)]","for p in persone:","    print(p.nome)"]},
+ {t:"Rubrica, parte 1",i:"Progettare la classe di un contatto.",c:"Definisci una classe Contatto con nome, telefono e città.",s:["class Contatto:","    def __init__(self, nome, telefono, citta):","        self.nome = nome","        self.telefono = telefono","        self.citta = citta"]},
+ {t:"Rubrica, parte 2",i:"Aggiungere contatti alla rubrica.",c:"Crea una lista di Contatto e aggiungine tre.",s:["rubrica = []","rubrica.append(Contatto('Anna', '333', 'Milano'))","rubrica.append(Contatto('Luca', '347', 'Roma'))","rubrica.append(Contatto('Sara', '340', 'Torino'))"]},
+ {t:"Rubrica, parte 3",i:"Cercare dentro i dati.",c:"Scrivi una funzione che trova un contatto per nome.",s:["def trova(rubrica, nome):","    for c in rubrica:","        if c.nome == nome:","            return c","    return None"]},
+ {t:"Rubrica, parte 4",i:"Salvare gli oggetti su file.",c:"Salva la rubrica in un file json e ricaricala.",s:["import json","dati = [{'nome': c.nome, 'telefono': c.telefono, 'citta': c.citta} for c in rubrica]","with open('rubrica.json', 'w') as f:","    json.dump(dati, f)"]},
+ {t:"Rubrica, parte 5",i:"Modificare ed eliminare.",c:"Aggiungi le funzioni per cambiare un numero ed eliminare un contatto.",s:["def elimina(rubrica, nome):","    for c in rubrica:","        if c.nome == nome:","            rubrica.remove(c)","            return"]},
+ {t:"Cercare gli errori",i:"Leggere il messaggio d'errore per capire.",c:"Rompi apposta un tuo programma e leggi bene il traceback per aggiustarlo.",s:["# Leggi l'ultima riga del traceback:","# dice il tipo di errore e la riga.","# esempio:","# ZeroDivisionError: division by zero"]},
+ {t:"Sollevare un errore",i:"Bloccare il programma con raise se qualcosa è sbagliato.",c:"Scrivi una funzione che solleva un errore se l'età è negativa.",s:["def imposta_eta(eta):","    if eta < 0:","        raise ValueError('eta negativa')","    return eta"]},
+ {t:"Aprire file in sicurezza",i:"Il costrutto with open per non lasciare file aperti.",c:"Riscrivi una lettura di file usando with open.",s:["with open('note.txt') as f:","    testo = f.read()","print(testo)"]},
+ {t:"Contare le cose",i:"Usare un dizionario per fare dei conteggi.",c:"Conta quante volte compare ogni parola in una frase.",s:["frase = 'sole mare sole cielo mare sole'","conteggio = {}","for parola in frase.split():","    conteggio[parola] = conteggio.get(parola, 0) + 1","print(conteggio)"]},
+ {t:"Contare veloce",i:"collections.Counter fa il conteggio per te.",c:"Trova la parola più frequente di un testo con Counter.",s:["from collections import Counter","frase = 'sole mare sole cielo mare sole'","c = Counter(frase.split())","print(c.most_common(1))"]},
+ {t:"La ricorsione",i:"Una funzione che chiama sé stessa.",c:"Scrivi il fattoriale di un numero in modo ricorsivo.",s:["def fattoriale(n):","    if n <= 1:","        return 1","    return n * fattoriale(n - 1)","","print(fattoriale(5))"]},
+ {t:"I generatori",i:"Produrre valori uno alla volta con yield.",c:"Scrivi un generatore che dà i primi 5 numeri pari.",s:["def pari(n):","    x = 0","    for _ in range(n):","        yield x","        x += 2","","print(list(pari(5)))"]},
+ {t:"I decoratori",i:"Funzioni che avvolgono altre funzioni.",c:"Scrivi un decoratore che stampa quanto tempo impiega una funzione.",s:["import time","","def cronometro(fn):","    def wrapper(*args, **kwargs):","        inizio = time.time()","        r = fn(*args, **kwargs)","        print('tempo:', time.time() - inizio)","        return r","    return wrapper"]},
+ {t:"Comprensioni con condizione",i:"Filtrare dentro una comprensione.",c:"Crea la lista dei numeri da 1 a 20 divisibili per 3.",s:["numeri = [n for n in range(1, 21) if n % 3 == 0]","print(numeri)"]},
+ {t:"Dire i tipi",i:"I type hints rendono il codice più chiaro.",c:"Scrivi def somma(a: int, b: int) -> int e provala.",s:["def somma(a: int, b: int) -> int:","    return a + b","","print(somma(4, 5))"]},
+ {t:"Numeri formattati",i:"Mostrare numeri con decimali o percentuali.",c:"Stampa 3.14159 con due decimali usando una f-string.",s:["pi = 3.14159","print(f'{pi:.2f}')"]},
+ {t:"Cercare pattern, 1",i:"Le espressioni regolari per trovare testo.",c:"Trova tutte le email dentro una frase con il modulo re.",s:["import re","testo = 'scrivimi a anna@mail.it o luca@mail.it'","print(re.findall(r'\\S+@\\S+', testo))"]},
+ {t:"Cercare pattern, 2",i:"Sostituire testo con le regex.",c:"Sostituisci gli spazi doppi con spazi singoli in una frase.",s:["import re","frase = 'troppi    spazi   qui'","print(re.sub(r' +', ' ', frase))"]},
+ {t:"Scaricare dal web",i:"La libreria requests per prendere dati online.",c:"Scarica il testo di una pagina e stampane i primi 200 caratteri.",s:["import requests","r = requests.get('https://example.com')","print(r.text[:200])"]},
+ {t:"Dati da un'API",i:"Leggere una risposta in JSON da internet.",c:"Chiama un'API pubblica semplice e stampa un campo della risposta.",s:["import requests","r = requests.get('https://api.github.com')","print(r.json()['current_user_url'])"]},
+ {t:"Gestire i percorsi",i:"pathlib per lavorare con file e cartelle.",c:"Elenca tutti i file di una cartella con pathlib.",s:["from pathlib import Path","for f in Path('.').iterdir():","    print(f.name)"]},
+ {t:"Verificare, parte 1",i:"Controllare il codice con assert.",c:"Scrivi una funzione e verificala con due assert.",s:["def doppio(n):","    return n * 2","","assert doppio(3) == 6","assert doppio(0) == 0"]},
+ {t:"Verificare, parte 2",i:"Scrivere un vero test automatico.",c:"Scrivi un piccolo test con unittest o pytest per una tua funzione.",s:["# test_doppio.py (con pytest)","from mio_modulo import doppio","","def test_doppio():","    assert doppio(3) == 6"]},
+ {t:"Parametri da terminale",i:"Passare valori allo script quando lo lanci.",c:"Fai uno script che saluta il nome passato da riga di comando.",s:["import sys","nome = sys.argv[1]","print('Ciao', nome)","# esegui: python saluta.py Anna"]},
+ {t:"Ripulire il codice",i:"Migliorare senza cambiare cosa fa (refactor).",c:"Riprendi la rubrica e rendi i nomi delle variabili più chiari.",s:["# Rinomina le variabili poco chiare:","# x  -> numero_contatti","# tmp -> risultato","# La logica non cambia, solo i nomi."]},
+ {t:"Progetto finale, 1",i:"Scegliere cosa costruire.",c:"Scrivi su carta l'idea del tuo programma e cosa deve fare.",s:["# Su carta, non in codice:","# - cosa fa il programma in una frase","# - quali dati usa","# - cosa mostra all'utente"]},
+ {t:"Progetto finale, 2",i:"Dare una struttura al progetto.",c:"Dividi l'idea in funzioni o classi, ancora senza scrivere tutto.",s:["def carica_dati():","    pass","","def mostra_menu():","    pass","","def salva_dati():","    pass"]},
+ {t:"Progetto finale, 3",i:"Salvare i dati del progetto.",c:"Aggiungi il salvataggio su file o json al tuo progetto.",s:["import json","","def salva(dati):","    with open('dati.json', 'w') as f:","        json.dump(dati, f)","","def carica():","    with open('dati.json') as f:","        return json.load(f)"]},
+ {t:"Progetto finale, 4",i:"Rendere il programma robusto.",c:"Gestisci gli input sbagliati e gli errori con try/except.",s:["try:","    n = int(input('Numero: '))","except ValueError:","    print('Devi scrivere un numero')","    n = 0"]},
+ {t:"Progetto finale, 5",i:"Rifinire e spiegare.",c:"Sistema il codice e aggiungi due righe di commento dove serve.",s:["def prezzo_totale(carrello):","    # somma i prezzi di tutti gli articoli","    return sum(carrello)"]},
+ {t:"Progetto finale, 6",i:"Raccontare cosa hai fatto.",c:"Scrivi cosa hai costruito e la cosa più difficile che hai imparato.",s:["# Scrivi in un file NOTE.md:","# - cosa fa il programma","# - la cosa piu difficile imparata","# - cosa miglioreresti"]}
+];
+
+const RAGIONA=[
+ "Prendi un'opinione che NON condividi e scrivi in tre righe il miglior argomento a suo favore.",
+ "Riformula con parole tue l'ultima cosa che hai letto, in una frase sola.",
+ "Distingui due concetti che si confondono spesso: legge e giustizia. Scrivi la differenza.",
+ "Trova il presupposto nascosto nella frase: si è sempre fatto così, quindi va bene.",
+ "Pensa a due cose che crescono insieme, ma dove una non causa l'altra.",
+ "Scegli una tua convinzione forte e scrivi cosa ti farebbe cambiare idea.",
+ "Spiega un concetto difficile come lo diresti a un bambino di dieci anni.",
+ "Prendi una notizia di oggi e separa i fatti dalle opinioni di chi la racconta.",
+ "Prendi un tema a scelta e dividi: cosa SAI, cosa PENSI, cosa SOSPETTI.",
+ "Trova un errore di ragionamento in una discussione che hai fatto di recente.",
+ "Se cambi tutti i pezzi di una barca, è ancora la stessa barca? Scrivi cosa ne pensi.",
+ "Prendi una pubblicità e scrivi cosa vuole farti credere, e come.",
+ "Scrivi una domanda a cui non sai rispondere, poi trova dove cercheresti la risposta.",
+ "Prendi una regola che segui e chiediti a cosa serve davvero.",
+ "Scegli una parola che usi spesso e prova a darne una definizione precisa.",
+ "Trova due spiegazioni diverse per lo stesso fatto e decidi quale regge di più.",
+ "Riscrivi un attacco alla persona trasformandolo in una critica all'argomento.",
+ "Pensa a una cosa di cui eri sicuro e ti sbagliavi. Cosa ti aveva ingannato?",
+ "Prendi un problema che sembra semplice e scrivi perché potrebbe essere più complesso.",
+ "Semplifica un'idea complicata senza renderla falsa. Scrivila in due righe.",
+ "Scrivi la posizione contraria alla tua su un tema, il più onestamente possibile.",
+ "Trova il punto debole più grande di un'idea a cui tieni.",
+ "Distingui tra 'è vero' e 'lo sento vero'. Fai un esempio concreto.",
+ "Prendi una decisione recente e scrivi le vere ragioni, non quelle di facciata.",
+ "Cosa cambieresti nel modo in cui hai ragionato ieri?",
+ "Prendi un'affermazione ovvia e prova a dimostrarla, non solo a ripeterla.",
+ "Applica un'idea che hai imparato leggendo a una situazione del tuo lavoro.",
+ "Scrivi una domanda migliore dell'ultima risposta che ti hanno dato.",
+ "Trova tre cause diverse per lo stesso evento e ordinale dalla più probabile alla meno.",
+ "Prendi un consiglio comune come 'segui la tua passione' e scrivi quando NON vale.",
+ "Distingui tra causa e coincidenza in un fatto che hai osservato oggi.",
+ "Scrivi una definizione della parola libertà senza usare sinonimi.",
+ "Prendi una tua abitudine e chiediti se la sceglieresti oggi partendo da zero.",
+ "Trova un caso in cui la maggioranza aveva torto. Cosa la traeva in inganno?",
+ "Prendi un tuo pregio e trova una situazione in cui diventa un difetto.",
+ "Prendi una frase fatta e smontala: è vera sempre, a volte o mai?",
+ "Descrivi una situazione dal punto di vista di chi la pensa all'opposto di te.",
+ "Trova due parole che usi come sinonimi ma che sinonimi non sono.",
+ "Prendi una previsione e scrivi come faresti a sapere se era giusta.",
+ "Scegli un numero che senti spesso nelle notizie e chiediti da dove viene.",
+ "Fai un esempio di correlazione, uno di causa e uno di puro caso.",
+ "Prendi una regola del tuo lavoro e immagina cosa succederebbe senza.",
+ "Trova un'idea che tutti danno per scontata e prova a metterla in dubbio.",
+ "Scrivi una scelta che hai fatto per abitudine e non per ragione.",
+ "Prendi un problema e scrivi tre modi di risolverlo prima di sceglierne uno.",
+ "Distingui tra 'non lo so' e 'non è possibile saperlo'.",
+ "Prendi una critica che ti hanno fatto e trova la parte vera, anche piccola.",
+ "Scrivi cosa cambierebbe nella tua giornata se una tua convinzione fosse falsa.",
+ "Trova un caso in cui più informazioni ti hanno confuso invece di aiutarti.",
+ "Prendi due esperti che dicono cose opposte e chiediti come è possibile.",
+ "Scrivi una domanda a cui rispondono in tanti ma che quasi nessuno capisce davvero.",
+ "Distingui tra un fatto e la sua interpretazione in un tuo ricordo.",
+ "Prendi un'emozione forte di oggi e chiediti quale pensiero l'ha accesa.",
+ "Scrivi perché una cosa ovvia per te potrebbe non esserlo per un altro.",
+ "Trova un caso in cui vincere una discussione ti avrebbe fatto perdere qualcosa.",
+ "Prendi una tua opinione e cerca la fonte: da chi o dove l'hai presa?",
+ "Scrivi cosa terresti di un'idea che rifiuti del tutto.",
+ "Distingui tra ciò che vuoi e ciò che pensi di dover volere.",
+ "Prendi una parola tecnica del tuo lavoro e spiegala a chi non ne sa nulla.",
+ "Trova un caso in cui semplificare troppo ha creato un errore.",
+ "Ricava una regola da tre esempi, poi cerca un controesempio che la rompe.",
+ "Prendi una scelta futura e scrivi cosa deciderebbe la versione saggia di te.",
+ "Distingui tra un rischio probabile e uno solo spaventoso.",
+ "Trova un'affermazione che sembra profonda ma non dice nulla. Perché ci si casca?",
+ "Scrivi il minimo che devi sapere per avere un'opinione su un tema nuovo.",
+ "Prendi una parola con due significati e mostra come confonderli crea errori.",
+ "Trova una cosa che facevi da bambino e che oggi giudichi in modo diverso.",
+ "Distingui tra chi ha ragione e chi urla di più in una discussione che hai visto.",
+ "Scrivi una previsione su domani e come la verificherai.",
+ "Prendi un'idea e chiediti chi ci guadagna se tu ci credi.",
+ "Trova due valori tuoi che a volte si scontrano. Come scegli quando succede?",
+ "Scrivi la versione più debole e quella più forte della stessa tua opinione.",
+ "Prendi un errore famoso della storia e chiediti cosa lo rendeva credibile allora.",
+ "Distingui tra capire una cosa e ricordarla a memoria.",
+ "Trova un caso in cui hai cambiato comportamento senza cambiare idea.",
+ "Scrivi cosa proveresti a insegnare a qualcuno per capire se l'hai capito tu.",
+ "Prendi una notizia e chiediti cosa NON ti stanno dicendo.",
+ "Distingui tra una domanda vera e una che nasconde già la risposta.",
+ "Prendi un tuo giudizio su una persona e separa i fatti dalle supposizioni.",
+ "Scrivi perché a volte la risposta giusta è 'dipende', e da cosa dipende.",
+ "Prendi una cosa che ti sembra giusta d'istinto e giustificala a mente fredda.",
+ "Distingui tra un problema da risolvere e una situazione da accettare.",
+ "Trova un'idea che hai difeso solo perché era tua.",
+ "Scrivi la domanda che eviti di farti, e perché."
+];
+
+const LEGGI=[
+ "Leggi almeno 15 minuti.",
+ "Leggi 15 minuti e segna una parola che non conosci.",
+ "Leggi un capitolo e riassumilo in una frase.",
+ "Leggi 15 minuti, poi fermati e prevedi cosa succede dopo.",
+ "Leggi 20 minuti col telefono lontano.",
+ "Leggi e sottolinea una frase che ti resta.",
+ "Leggi 15 minuti e scrivi cosa ti ha colpito.",
+ "Leggi un po' più del solito, anche solo 5 pagine in più.",
+ "Leggi 15 minuti e prova a raccontare a voce cosa hai letto.",
+ "Leggi con calma e rileggi il passaggio che non ti torna.",
+ "Leggi 15 minuti e nota il tono di chi scrive.",
+ "Leggi e chiediti perché l'autore ha scelto proprio queste parole.",
+ "Leggi e prova a immaginare la scena come un film.",
+ "Leggi 15 minuti e scrivi una domanda che ti è venuta.",
+ "Leggi e trova una frase con cui non sei d'accordo.",
+ "Leggi 15 minuti e collega qualcosa alla tua vita.",
+ "Leggi e nota dove ti distrai, poi torna indietro.",
+ "Leggi un dialogo e chiediti cosa non viene detto.",
+ "Leggi 15 minuti e prova a indovinare come finisce.",
+ "Leggi e scegli la frase più bella della pagina.",
+ "Leggi 15 minuti e riassumi un personaggio in tre parole.",
+ "Leggi e chiediti cosa avrebbe fatto un altro al posto suo.",
+ "Leggi 20 minuti senza fermarti alla prima parola difficile.",
+ "Leggi e nota un'immagine o un paragone che ti piace.",
+ "Leggi 15 minuti e scrivi se il ritmo è lento o veloce, e perché.",
+ "Leggi e trova il punto in cui la storia cambia direzione.",
+ "Leggi 15 minuti e chiediti di chi ti fidi tra i personaggi.",
+ "Leggi e prova a spiegare il capitolo al te stesso tra un anno.",
+ "Leggi 15 minuti e scegli cosa vorresti chiedere all'autore.",
+ "Leggi e nota una cosa che l'autore dà per scontata."
+];
+
+let stato=carica();
+let oggi=mezzanotte(new Date());
+let tab="oggi";
+let calMese=new Date(oggi.getFullYear(),oggi.getMonth(),1);
+
+function mezzanotte(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+function ymd(d){const m=("0"+(d.getMonth()+1)).slice(-2),g=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+g;}
+function indiceGiorno(d){const base=new Date(2024,0,1);return Math.round((mezzanotte(d)-base)/86400000);}
+function mod(n,m){return ((n%m)+m)%m;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function leggiPer(d){return LEGGI[mod(indiceGiorno(d),LEGGI.length)];}
+function ragionaPer(d){return RAGIONA[mod(indiceGiorno(d),RAGIONA.length)];}
+function pyStepsOf(h){return h.pySteps || (h.pyStep!==undefined?[h.pyStep]:[]);}
+function pyFattiOggi(){return pyStepsOf(stato.history[ymd(oggi)]||{}).length;}
+
+function nuovo(){return {history:{},pythonIndex:0};}
+function carica(){try{return Object.assign(nuovo(),JSON.parse(localStorage.getItem(K)));}catch(e){return nuovo();}}
+function salva(){try{localStorage.setItem(K,JSON.stringify(stato));}catch(e){}}
+
+function attivo(k){const h=stato.history[k];return !!(h&&(h.read||h.think||pyStepsOf(h).length||h.diet||h.gym));}
+function pieno(k){const h=stato.history[k];return !!(h&&h.read&&h.think&&pyStepsOf(h).length&&h.diet&&h.gym);}
+
+function streak(){
+  let d=new Date(oggi);
+  if(!attivo(ymd(d)))d.setDate(d.getDate()-1);
+  let n=0;
+  while(attivo(ymd(d))){n++;d.setDate(d.getDate()-1);}
+  return n;
+}
+function recordStreak(){
+  const chiavi=Object.keys(stato.history).filter(attivo).sort();
+  let best=0,run=0,prec=null;
+  for(const k of chiavi){
+    const d=new Date(k);
+    if(prec&&Math.round((d-prec)/86400000)===1)run++;else run=1;
+    if(run>best)best=run;
+    prec=d;
+  }
+  return Math.max(best,streak());
+}
+function giorniSenza(track){
+  let d=new Date(oggi);
+  for(let i=0;i<400;i++){
+    const h=stato.history[ymd(d)];
+    if(h){const ok = track==="python" ? pyStepsOf(h).length>0 : h[track]; if(ok)return i;}
+    d.setDate(d.getDate()-1);
+  }
+  return null;
+}
+function totali(){
+  let punti=0,think=0,read=0,diet=0,gym=0;
+  for(const k in stato.history){
+    const h=stato.history[k];
+    if(h.read){punti+=10;read++;}
+    if(h.think){punti+=10;think++;}
+    if(h.diet){punti+=10;diet++;}
+    if(h.gym){punti+=10;gym++;}
+    const pn=pyStepsOf(h).length; punti+=20*pn;
+    if(h.read&&h.think&&pn&&h.diet&&h.gym)punti+=10;
+  }
+  return {punti,think,read,diet,gym};
+}
+
+function toggle(track){
+  const k=ymd(oggi);
+  if(!stato.history[k])stato.history[k]={};
+  stato.history[k][track]=!stato.history[k][track];
+  salva();render();
+}
+function completaPython(){
+  if(stato.pythonIndex>=PYTHON.length)return;
+  const k=ymd(oggi);
+  if(!stato.history[k])stato.history[k]={};
+  const h=stato.history[k];
+  if(!h.pySteps)h.pySteps=[];
+  h.pySteps.push(stato.pythonIndex);
+  stato.pythonIndex++;
+  salva();render();
+}
+function annullaPython(){
+  const k=ymd(oggi);
+  const h=stato.history[k];
+  if(!h)return;
+  const steps=pyStepsOf(h);
+  if(!steps.length)return;
+  const last=steps[steps.length-1];
+  if(h.pySteps){h.pySteps.pop();if(!h.pySteps.length)delete h.pySteps;}
+  else delete h.pyStep;
+  stato.pythonIndex=last;
+  salva();render();
+}
+
+function topHTML(){
+  const s=streak();
+  return `<div class="top"><div class="brand">cos<span class="p">t</span>ante</div>
+    <div class="topicons">
+      <button class="iconbtn ${tab==="traguardi"?"on":""}" data-trofeo aria-label="Traguardi">${trofeo()}</button>
+      <div class="streak">${fiamma(s>0)}<span>${s}</span></div>
+    </div></div>`;
+}
+
+function navHTML(){
+  const ico={
+    oggi:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
+    storico:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>`,
+    prossimi:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h12M13 6l6 6-6 6"/></svg>`
+  };
+  const b=(id,lab)=>`<button data-tab="${id}" class="${tab===id?"on":""}">${ico[id]}${lab}</button>`;
+  return `<div class="nav">${b("oggi","Oggi")}${b("storico","Storico")}${b("prossimi","In arrivo")}</div>`;
+}
+
+function oggiHTML(){
+  const t=totali();
+  const s=streak();
+  const liv=Math.floor(t.punti/100)+1, nelLiv=t.punti%100;
+  const k=ymd(oggi), h=stato.history[k]||{};
+  const leggiOggi=leggiPer(oggi), ragionaOggi=ragionaPer(oggi);
+  const pyOggi=pyFattiOggi();
+  const pyIdx=stato.pythonIndex;
+  const py=PYTHON[pyIdx];
+  const dstr=cap(oggi.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}));
+  const sMsg=s>0?s+(s===1?" giorno di fila":" giorni di fila"):"Ricominciamo da oggi";
+  const sL=giorniSenza("read"), sT=giorniSenza("think"), sP=giorniSenza("python");
+
+  let week="";const gg=["L","M","M","G","V","S","D"];
+  for(let i=6;i>=0;i--){
+    const d=new Date(oggi);d.setDate(d.getDate()-i);const kk=ymd(d);
+    const wd=(d.getDay()+6)%7;
+    week+=`<div class="day ${i===0?"today":""}"><div class="lab">${gg[wd]}</div><div class="cell ${pieno(kk)?"full":attivo(kk)?"on":""}"><span class="m"></span></div></div>`;
+  }
+
+  const okPy = pyOggi>0?' <span class="pyok">&#10003;</span>':"";
+  const fatto = pyOggi>0?`<div class="pydone">Fatto oggi: ${pyOggi} ${pyOggi===1?"passo":"passi"}<button class="undo" data-pyundo>Annulla ultimo</button></div>`:"";
+  let pyCard;
+  if(pyIdx>=PYTHON.length){
+    pyCard=`<div class="card"><button class="tick python on" disabled></button>
+      <div class="body"><div class="tag python">Python${okPy}</div>
+      <div class="task">Hai finito tutto il percorso. Scegli un piccolo programma tuo e costruiscilo.</div>
+      ${fatto}</div></div>`;
+  }else{
+    pyCard=`<div class="card"><button class="tick python" data-pydone aria-label="Completa il passo"></button>
+      <div class="body"><div class="tag python">Python, passo ${pyIdx+1}${okPy}</div>
+      <div class="task">${py.t}</div>
+      <div class="sub">Impari: ${py.i}</div>
+      <div class="sub"><b>Oggi:</b> ${py.c}</div>
+      <button class="solbtn" id="solbtn">Vedi soluzione</button>
+      <pre class="code" id="solcode" hidden>${esc(py.s.join("\n"))}</pre>
+      ${pyOggi>0?`<div class="sub">Hai tempo? Completa questo e passi subito al successivo.</div>`:""}
+      ${sP>=2&&pyOggi===0?`<div class="nudge">Sono ${sP} giorni che non tocchi Python.</div>`:""}
+      ${fatto}</div></div>`;
+  }
+
+  return `
+  <div class="lvl"><div class="lvl-top"><span>Livello <b>${liv}</b></span><span>${t.punti} punti</span></div>
+    <div class="bar"><span style="width:${nelLiv}%"></span></div></div>
+  <div class="week">${week}</div>
+  <div class="h"><span>${sMsg}</span><span class="date">${dstr}</span></div>
+  ${pieno(k)?`<div class="pieno">Giornata piena. Le hai fatte tutte.</div>`:""}
+
+  <div class="card ${h.read?"done":""}"><button class="tick read ${h.read?"on":""}" data-toggle="read"></button>
+    <div class="body"><div class="tag read">Lettura</div>
+    <div class="task">${leggiOggi}</div>
+    ${sL>=2&&!h.read?`<div class="nudge">Sono ${sL} giorni che non leggi.</div>`:""}
+    <div class="pagerow"><label>Pagine lette</label><input class="pages" id="pagine" inputmode="numeric" value="${h.pages||""}" placeholder="0"></div>
+    <textarea class="note" id="nota" rows="1" placeholder="Il tuo pensiero (facoltativo)">${esc(h.note||"")}</textarea>
+    <div class="facolt">Scrivi cosa vuoi, anche mezza frase. Puoi ignorare lo spunto sopra.</div>
+    </div></div>
+
+  <div class="card ${h.think?"done":""}"><button class="tick think ${h.think?"on":""}" data-toggle="think"></button>
+    <div class="body"><div class="tag think">Ragionamento</div>
+    <div class="task">${ragionaOggi}</div>
+    ${sT>=2&&!h.think?`<div class="nudge">Sono ${sT} giorni senza un esercizio.</div>`:""}
+    </div></div>
+
+  ${pyCard}
+
+  <div class="card ${h.diet?"done":""}"><button class="tick diet ${h.diet?"on":""}" data-toggle="diet"></button>
+    <div class="body"><div class="tag diet">Dieta</div>
+    <div class="task">Resta sul piano di oggi.</div></div></div>
+
+  <div class="card ${h.gym?"done":""}"><button class="tick gym ${h.gym?"on":""}" data-toggle="gym"></button>
+    <div class="body"><div class="tag gym">Palestra</div>
+    <div class="task">Allenati e spingi. Se è giorno di riposo, non spuntarla.</div></div></div>
+
+  <div class="pyprog"><div class="r"><span>Percorso Python</span><b>${Math.min(stato.pythonIndex,PYTHON.length)} di ${PYTHON.length}</b></div>
+    <div class="bar"><span style="width:${Math.min(stato.pythonIndex/PYTHON.length*100,100)}%"></span></div></div>`;
+}
+
+function storicoHTML(){
+  const y=calMese.getFullYear(), m=calMese.getMonth();
+  const first=new Date(y,m,1);
+  const blanks=(first.getDay()+6)%7;
+  const giorni=new Date(y,m+1,0).getDate();
+  const titolo=cap(calMese.toLocaleDateString("it-IT",{month:"long",year:"numeric"}));
+  const wd=["L","M","M","G","V","S","D"];
+  let cells=wd.map(w=>`<div class="cal-wd">${w}</div>`).join("");
+  for(let i=0;i<blanks;i++)cells+=`<div class="cal-day empty"></div>`;
+  for(let g=1;g<=giorni;g++){
+    const d=new Date(y,m,g),k=ymd(d),h=stato.history[k]||{};
+    const future=mezzanotte(d)>oggi;
+    let dots="";
+    if(h.read)dots+=`<span class="dt" style="background:var(--read)"></span>`;
+    if(h.think)dots+=`<span class="dt" style="background:var(--think)"></span>`;
+    if(pyStepsOf(h).length)dots+=`<span class="dt" style="background:var(--python)"></span>`;
+    if(h.diet)dots+=`<span class="dt" style="background:var(--diet)"></span>`;
+    if(h.gym)dots+=`<span class="dt" style="background:var(--gym)"></span>`;
+    cells+=`<div class="cal-day ${future?"future":""} ${k===ymd(oggi)?"today":""}" data-day="${k}"><span>${g}</span><span class="dots">${dots}</span></div>`;
+  }
+  const leg=`<div class="cal-legend">
+    <span><i style="background:var(--read)"></i>Lettura</span>
+    <span><i style="background:var(--think)"></i>Ragionamento</span>
+    <span><i style="background:var(--python)"></i>Python</span></div>`;
+  return `<button class="resbtn" data-resoconto>Resoconto dell'anno</button>
+    <div class="cal-head"><button class="cal-nav" data-cal="-1">&lsaquo;</button>
+    <div class="cal-title">${titolo}</div>
+    <button class="cal-nav" data-cal="1">&rsaquo;</button></div>
+    <div class="cal-grid">${cells}</div>${leg}`;
+}
+
+function labelFuturo(d){
+  const diff=Math.round((mezzanotte(d)-oggi)/86400000);
+  if(diff===0)return "Oggi";
+  if(diff===1)return "Domani";
+  return cap(d.toLocaleDateString("it-IT",{weekday:"short",day:"numeric"}));
+}
+
+function traguardiHTML(){
+  const t=totali(), rec=recordStreak();
+  const badges=[
+    {n:"Il primo passo",d:"Completa un obiettivo",got:t.punti>0},
+    {n:"Tre di fila",d:"Streak di 3 giorni",got:rec>=3},
+    {n:"Una settimana",d:"Streak di 7 giorni",got:rec>=7},
+    {n:"Un mese intero",d:"Streak di 30 giorni",got:rec>=30},
+    {n:"Cento giorni",d:"Streak di 100 giorni",got:rec>=100},
+    {n:"Dieci passi",d:"10 lezioni di Python",got:stato.pythonIndex>=10},
+    {n:"Metà strada",d:"45 lezioni di Python",got:stato.pythonIndex>=45},
+    {n:"Le classi",d:"Arriva agli oggetti in Python",got:stato.pythonIndex>=56},
+    {n:"Progetto finale",d:"Arriva al progetto finale",got:stato.pythonIndex>=85},
+    {n:"Percorso finito",d:"Completa i 90 passi",got:stato.pythonIndex>=PYTHON.length},
+    {n:"Mente allenata",d:"30 esercizi di ragionamento",got:t.think>=30},
+    {n:"Lettore fisso",d:"30 giorni di lettura",got:t.read>=30},
+    {n:"Disciplina a tavola",d:"30 giorni di dieta",got:t.diet>=30},
+    {n:"Sala pesi",d:"30 giorni di palestra",got:t.gym>=30}
+  ];
+  const fatti=badges.filter(b=>b.got).length;
+  return `<div class="h"><span>Traguardi</span><span class="date">${fatti} di ${badges.length}</span></div>
+    <div class="ach-grid">${badges.map(b=>`<div class="badge ${b.got?"got":""}"><div class="n">${b.n}</div><div class="dsc">${b.d}</div></div>`).join("")}</div>`;
+}
+
+function prossimiHTML(){
+  let py="";
+  const start=stato.pythonIndex;
+  if(start>=PYTHON.length){
+    py=`<div class="up"><div class="what">Hai completato tutti i ${PYTHON.length} passi. Ora tocca a un progetto tutto tuo.</div></div>`;
+  }else{
+    const fine=Math.min(start+14,PYTHON.length);
+    for(let i=start;i<fine;i++){
+      py+=`<div class="up ${i===start?"next":""}"><div class="what"><div class="step">Passo ${i+1}${i===start?", il prossimo":""}</div>${PYTHON[i].t}</div></div>`;
+    }
+    const restano=PYTHON.length-fine;
+    if(restano>0)py+=`<div class="remaining">e altri ${restano} passi fino al progetto finale</div>`;
+  }
+  let rag="",lett="";
+  for(let i=1;i<=5;i++){
+    const d=new Date(oggi);d.setDate(d.getDate()+i);
+    rag+=`<div class="up"><div class="when">${labelFuturo(d)}</div><div class="what">${ragionaPer(d)}</div></div>`;
+    lett+=`<div class="up"><div class="when">${labelFuturo(d)}</div><div class="what">${leggiPer(d)}</div></div>`;
+  }
+  return `<div class="sec-title">Percorso Python</div>${py}
+    <div class="sec-title">Ragionamento</div>${rag}
+    <div class="sec-title">Lettura</div>${lett}`;
+}
+
+function render(){
+  const app=document.getElementById("app");
+  const corpo = tab==="oggi"?oggiHTML() : tab==="storico"?storicoHTML() : tab==="prossimi"?prossimiHTML() : traguardiHTML();
+  app.innerHTML = topHTML() + corpo + navHTML();
+
+  const tf=document.querySelector("[data-trofeo]"); if(tf)tf.addEventListener("click",()=>{tab = tab==="traguardi"?"oggi":"traguardi"; render();});
+  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;render();}));
+
+  if(tab==="oggi"){
+    document.querySelectorAll("[data-toggle]").forEach(b=>b.addEventListener("click",()=>toggle(b.dataset.toggle)));
+    const pd=document.querySelector("[data-pydone]"); if(pd)pd.addEventListener("click",completaPython);
+    const pu=document.querySelector("[data-pyundo]"); if(pu)pu.addEventListener("click",annullaPython);
+    const sb=document.getElementById("solbtn"), sc=document.getElementById("solcode");
+    if(sb&&sc)sb.addEventListener("click",()=>{if(sc.hasAttribute("hidden")){sc.removeAttribute("hidden");sb.textContent="Nascondi soluzione";}else{sc.setAttribute("hidden","");sb.textContent="Vedi soluzione";}});
+    const pagine=document.getElementById("pagine");
+    if(pagine)pagine.addEventListener("input",()=>{const k=ymd(oggi);if(!stato.history[k])stato.history[k]={};const v=parseInt(pagine.value,10);stato.history[k].pages=isNaN(v)?0:v;salva();});
+    const nota=document.getElementById("nota");
+    if(nota){autoAltezza(nota);nota.addEventListener("input",()=>{const k=ymd(oggi);if(!stato.history[k])stato.history[k]={};stato.history[k].note=nota.value;autoAltezza(nota);salva();});}
+  }
+  if(tab==="storico"){
+    const rb=document.querySelector("[data-resoconto]"); if(rb)rb.addEventListener("click",apriResoconto);
+    document.querySelectorAll("[data-cal]").forEach(b=>b.addEventListener("click",()=>{calMese.setMonth(calMese.getMonth()+parseInt(b.dataset.cal,10));render();}));
+    document.querySelectorAll(".cal-day[data-day]").forEach(c=>c.addEventListener("click",()=>apriRecap(c.dataset.day)));
+  }
+}
+
+function apriRecap(k){
+  const d=new Date(k), h=stato.history[k]||{};
+  const titolo=cap(d.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}));
+  const steps = pyStepsOf(h);
+  const pyTxt = steps.length ? steps.map(s=>"Passo "+(s+1)+": "+PYTHON[s].t).join("<br>") : "Nessun passo registrato";
+  const rows=[
+    {cls:"read",lab:"Lettura",done:!!h.read,txt:leggiPer(d),extra:h.pages?("Pagine lette: "+h.pages):"",note:h.note},
+    {cls:"think",lab:"Ragionamento",done:!!h.think,txt:ragionaPer(d)},
+    {cls:"python",lab:"Python",done:steps.length>0,txt:pyTxt}
+  ];
+  const rowsHTML=rows.map(r=>`<div class="rc-row">
+    <span class="rc-mark ${r.done?"on":""} ${r.cls}"></span>
+    <div><div class="rc-lab ${r.cls}">${r.lab}${r.done?"":" (non fatto)"}</div>
+    <div class="rc-txt">${r.txt}</div>
+    ${r.extra?`<div class="rc-extra">${r.extra}</div>`:""}
+    ${r.note?`<div class="rc-note">${esc(r.note)}</div>`:""}
+    </div></div>`).join("");
+  document.getElementById("modal").innerHTML=`<div class="overlay" id="ovl">
+    <div class="sheet"><div class="sheet-head"><div class="t">${titolo}</div><button class="x" id="chiudi">&times;</button></div>
+    ${rowsHTML}</div></div>`;
+  document.getElementById("chiudi").addEventListener("click",chiudiRecap);
+  document.getElementById("ovl").addEventListener("click",e=>{if(e.target.id==="ovl")chiudiRecap();});
+}
+function chiudiRecap(){document.getElementById("modal").innerHTML="";}
+
+let resFiltro="tutto";
+let resAnno=oggi.getFullYear();
+const RES_TRACCE=[["tutto","Tutto"],["read","Lettura"],["think","Ragionamento"],["python","Python"],["diet","Dieta"],["gym","Palestra"]];
+
+function cellColor(k){
+  const h=stato.history[k]; if(!h)return "";
+  if(resFiltro==="tutto"){
+    const n=(h.read?1:0)+(h.think?1:0)+(pyStepsOf(h).length?1:0)+(h.diet?1:0)+(h.gym?1:0);
+    if(!n)return "";
+    return `rgba(225,177,90,${[0,.28,.46,.64,.82,1][Math.min(n,5)]})`;
+  }
+  const on = resFiltro==="python" ? pyStepsOf(h).length>0 : !!h[resFiltro];
+  return on ? `var(--${resFiltro})` : "";
+}
+
+function apriResoconto(){renderResoconto();}
+function renderResoconto(){
+  const y=resAnno;
+  const fine=new Date(y,11,31);
+  let d=new Date(y,0,1);
+  d.setDate(d.getDate()-((d.getDay()+6)%7));
+  const mesi=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+  let colonne="", etichette="", meseVisto=-1;
+  while(d<=fine){
+    let col="", meseCol=-1;
+    for(let r=0;r<7;r++){
+      const cur=new Date(d); cur.setDate(d.getDate()+r);
+      const dentro=cur.getFullYear()===y, futuro=mezzanotte(cur)>oggi;
+      let bg="transparent";
+      if(dentro&&!futuro){bg=cellColor(ymd(cur))||"var(--bg3)";}
+      else if(dentro&&futuro){bg="var(--bg2)";}
+      col+=`<span class="cg-cell" style="background:${bg}"></span>`;
+      if(dentro&&cur.getDate()<=7&&cur.getMonth()!==meseVisto)meseCol=cur.getMonth();
+    }
+    if(meseCol>=0){etichette+=`<span class="cg-m">${mesi[meseCol]}</span>`;meseVisto=meseCol;}
+    else etichette+=`<span class="cg-m"></span>`;
+    colonne+=`<div class="cg-col">${col}</div>`;
+    d.setDate(d.getDate()+7);
+  }
+  const chips=RES_TRACCE.map(([id,lab])=>`<button class="chip ${resFiltro===id?"on":""}" data-resf="${id}">${lab}</button>`).join("");
+  const leg = resFiltro==="tutto"
+    ? `<div class="cg-leg">meno<span class="lg" style="background:var(--bg3)"></span><span class="lg" style="background:rgba(225,177,90,.46)"></span><span class="lg" style="background:rgba(225,177,90,.82)"></span><span class="lg" style="background:rgba(225,177,90,1)"></span>più</div>`
+    : `<div class="cg-leg"><span class="lg" style="background:var(--bg3)"></span>non fatto<span class="lg" style="background:var(--${resFiltro})"></span>fatto</div>`;
+  document.getElementById("modal").innerHTML=`<div class="overlay res" id="ovl"><div class="respage">
+    <div class="sheet-head"><div class="t">Resoconto</div><button class="x" id="chiudi">&times;</button></div>
+    <div class="resnav"><button class="cal-nav" data-resy="-1">&lsaquo;</button><span>${y}</span><button class="cal-nav" data-resy="1">&rsaquo;</button></div>
+    <div class="chips">${chips}</div>
+    <div class="cg-scroll"><div class="cg-labels">${etichette}</div><div class="cg">${colonne}</div></div>
+    ${leg}
+    </div></div>`;
+  document.getElementById("chiudi").addEventListener("click",chiudiRecap);
+  document.getElementById("ovl").addEventListener("click",e=>{if(e.target.id==="ovl")chiudiRecap();});
+  document.querySelectorAll("[data-resf]").forEach(b=>b.addEventListener("click",()=>{resFiltro=b.dataset.resf;renderResoconto();}));
+  document.querySelectorAll("[data-resy]").forEach(b=>b.addEventListener("click",()=>{resAnno+=parseInt(b.dataset.resy,10);renderResoconto();}));
+}
+
+function trofeo(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3M9 20h6M12 14v6M8 20h8"/></svg>`;}
+
+function autoAltezza(el){el.style.height="auto";el.style.height=el.scrollHeight+"px";}
+function fiamma(acceso){
+  const c=acceso?"var(--gold)":"var(--muted)";
+  return `<svg viewBox="0 0 24 26" fill="none"><path d="M12 1c3 5 6 7 6 12a6 6 0 0 1-12 0c0-2.5 1-4 2.5-5.5C8.5 12 10 14 12 14c-2-4 0-8 0-13z" fill="${c}"/></svg>`;
+}
+
+render();
+</script>
+</body>
+</html>
