@@ -160,13 +160,16 @@
   .resbtn{display:block;width:100%;background:var(--bg2);box-shadow:var(--elev);border:none;color:var(--gold);font:inherit;font-size:14px;font-weight:600;border-radius:var(--r-md);padding:13px;margin-bottom:16px;cursor:pointer;transition:transform .1s ease;}
   .resbtn:active{transform:scale(.98);}
   .overlay.res{align-items:stretch;}
-  .respage{background:var(--bg);width:100%;max-width:440px;height:100%;overflow-y:auto;padding:18px 18px calc(24px + env(safe-area-inset-bottom));animation:up .22s cubic-bezier(.2,0,0,1);}
-  .resnav{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 2px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .respage{background:var(--bg);width:100%;max-width:440px;height:100%;overflow-y:auto;padding:18px 18px calc(24px + env(safe-area-inset-bottom));animation:fadein .22s ease both;}
   .chips{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0;}
   .chip{background:var(--bg3);border:none;color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;border-radius:100px;padding:6px 12px;cursor:pointer;transition:transform .1s ease;}
   .chip:active{transform:scale(.95);}
   .chip.on{background:var(--gold);color:#17130a;}
-  .cg-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;}
+  .cg-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;scrollbar-width:none;-ms-overflow-style:none;}
+  .cg-scroll::-webkit-scrollbar{display:none;}
+  .anno{margin-top:20px;}
+  .anno:first-of-type{margin-top:10px;}
+  .anno-tit{font-size:15px;font-weight:700;margin-bottom:9px;font-variant-numeric:tabular-nums;}
   .cg-labels{display:flex;gap:3px;margin-bottom:5px;}
   .cg-m{width:11px;flex:0 0 11px;font-size:10px;line-height:1;color:var(--muted);white-space:nowrap;}
   .cg{display:flex;gap:3px;}
@@ -174,6 +177,14 @@
   .cg-cell{width:11px;height:11px;flex:0 0 11px;border-radius:2px;}
   .cg-leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:14px;}
   .cg-leg .lg{width:11px;height:11px;border-radius:2px;display:inline-block;}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .view.anim{animation:fadein .28s ease both;}
+  @keyframes pop{0%{transform:scale(1);}42%{transform:scale(1.02);}100%{transform:scale(1);}}
+  .card.pop{animation:pop .32s ease;}
+  @keyframes flame{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.14);opacity:.82;}}
+  .streak.live svg{animation:flame 2.6s ease-in-out infinite;transform-origin:50% 90%;}
+  @keyframes gridin{from{opacity:0;}to{opacity:1;}}
+  .cg,.cg-labels{animation:gridin .3s ease both;}
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
   @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
 </style>
@@ -401,6 +412,8 @@ const LEGGI=[
 let stato=carica();
 let oggi=mezzanotte(new Date());
 let tab="oggi";
+let tabPrec="oggi";
+let ultimoTocco=null;
 let calMese=new Date(oggi.getFullYear(),oggi.getMonth(),1);
 
 function mezzanotte(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
@@ -466,6 +479,7 @@ function toggle(track){
   const k=ymd(oggi);
   if(!stato.history[k])stato.history[k]={};
   stato.history[k][track]=!stato.history[k][track];
+  ultimoTocco=track;
   salva();render();
 }
 function completaPython(){
@@ -476,6 +490,7 @@ function completaPython(){
   if(!h.pySteps)h.pySteps=[];
   h.pySteps.push(stato.pythonIndex);
   stato.pythonIndex++;
+  ultimoTocco="python";
   salva();render();
 }
 function annullaPython(){
@@ -496,7 +511,7 @@ function topHTML(){
   return `<div class="top"><div class="brand">cos<span class="p">t</span>ante</div>
     <div class="topicons">
       <button class="iconbtn ${tab==="traguardi"?"on":""}" data-trofeo aria-label="Traguardi">${trofeo()}</button>
-      <div class="streak">${fiamma(s>0)}<span>${s}</span></div>
+      <div class="streak ${s>0?"live":""}">${fiamma(s>0)}<span>${s}</span></div>
     </div></div>`;
 }
 
@@ -519,6 +534,7 @@ function oggiHTML(){
   const pyOggi=pyFattiOggi();
   const pyIdx=stato.pythonIndex;
   const py=PYTHON[pyIdx];
+  const pop=x=>ultimoTocco===x?" pop":"";
   const dstr=cap(oggi.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}));
   const sMsg=s>0?s+(s===1?" giorno di fila":" giorni di fila"):"Ricominciamo da oggi";
   const sL=giorniSenza("read"), sT=giorniSenza("think"), sP=giorniSenza("python");
@@ -534,12 +550,12 @@ function oggiHTML(){
   const fatto = pyOggi>0?`<div class="pydone">Fatto oggi: ${pyOggi} ${pyOggi===1?"passo":"passi"}<button class="undo" data-pyundo>Annulla ultimo</button></div>`:"";
   let pyCard;
   if(pyIdx>=PYTHON.length){
-    pyCard=`<div class="card"><button class="tick python on" disabled></button>
+    pyCard=`<div class="card${pop("python")}"><button class="tick python on" disabled></button>
       <div class="body"><div class="tag python">Python${okPy}</div>
       <div class="task">Hai finito tutto il percorso. Scegli un piccolo programma tuo e costruiscilo.</div>
       ${fatto}</div></div>`;
   }else{
-    pyCard=`<div class="card"><button class="tick python" data-pydone aria-label="Completa il passo"></button>
+    pyCard=`<div class="card${pop("python")}"><button class="tick python" data-pydone aria-label="Completa il passo"></button>
       <div class="body"><div class="tag python">Python, passo ${pyIdx+1}${okPy}</div>
       <div class="task">${py.t}</div>
       <div class="sub">Impari: ${py.i}</div>
@@ -558,7 +574,7 @@ function oggiHTML(){
   <div class="h"><span>${sMsg}</span><span class="date">${dstr}</span></div>
   ${pieno(k)?`<div class="pieno">Giornata piena. Le hai fatte tutte.</div>`:""}
 
-  <div class="card ${h.read?"done":""}"><button class="tick read ${h.read?"on":""}" data-toggle="read"></button>
+  <div class="card ${h.read?"done":""}${pop("read")}"><button class="tick read ${h.read?"on":""}" data-toggle="read"></button>
     <div class="body"><div class="tag read">Lettura</div>
     <div class="task">${leggiOggi}</div>
     ${sL>=2&&!h.read?`<div class="nudge">Sono ${sL} giorni che non leggi.</div>`:""}
@@ -567,7 +583,7 @@ function oggiHTML(){
     <div class="facolt">Scrivi cosa vuoi, anche mezza frase. Puoi ignorare lo spunto sopra.</div>
     </div></div>
 
-  <div class="card ${h.think?"done":""}"><button class="tick think ${h.think?"on":""}" data-toggle="think"></button>
+  <div class="card ${h.think?"done":""}${pop("think")}"><button class="tick think ${h.think?"on":""}" data-toggle="think"></button>
     <div class="body"><div class="tag think">Ragionamento</div>
     <div class="task">${ragionaOggi}</div>
     ${sT>=2&&!h.think?`<div class="nudge">Sono ${sT} giorni senza un esercizio.</div>`:""}
@@ -575,11 +591,11 @@ function oggiHTML(){
 
   ${pyCard}
 
-  <div class="card ${h.diet?"done":""}"><button class="tick diet ${h.diet?"on":""}" data-toggle="diet"></button>
+  <div class="card ${h.diet?"done":""}${pop("diet")}"><button class="tick diet ${h.diet?"on":""}" data-toggle="diet"></button>
     <div class="body"><div class="tag diet">Dieta</div>
     <div class="task">Resta sul piano di oggi.</div></div></div>
 
-  <div class="card ${h.gym?"done":""}"><button class="tick gym ${h.gym?"on":""}" data-toggle="gym"></button>
+  <div class="card ${h.gym?"done":""}${pop("gym")}"><button class="tick gym ${h.gym?"on":""}" data-toggle="gym"></button>
     <div class="body"><div class="tag gym">Palestra</div>
     <div class="task">Allenati e spingi. Se è giorno di riposo, non spuntarla.</div></div></div>
 
@@ -675,7 +691,9 @@ function prossimiHTML(){
 function render(){
   const app=document.getElementById("app");
   const corpo = tab==="oggi"?oggiHTML() : tab==="storico"?storicoHTML() : tab==="prossimi"?prossimiHTML() : traguardiHTML();
-  app.innerHTML = topHTML() + corpo + navHTML();
+  const cambio = tab!==tabPrec; tabPrec=tab;
+  app.innerHTML = topHTML() + `<div class="view${cambio?" anim":""}">` + corpo + `</div>` + navHTML();
+  ultimoTocco=null;
 
   const tf=document.querySelector("[data-trofeo]"); if(tf)tf.addEventListener("click",()=>{tab = tab==="traguardi"?"oggi":"traguardi"; render();});
   document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;render();}));
@@ -724,7 +742,6 @@ function apriRecap(k){
 function chiudiRecap(){document.getElementById("modal").innerHTML="";}
 
 let resFiltro="tutto";
-let resAnno=oggi.getFullYear();
 const RES_TRACCE=[["tutto","Tutto"],["read","Lettura"],["think","Ragionamento"],["python","Python"],["diet","Dieta"],["gym","Palestra"]];
 
 function cellColor(k){
@@ -739,12 +756,11 @@ function cellColor(k){
 }
 
 function apriResoconto(){renderResoconto();}
-function renderResoconto(){
-  const y=resAnno;
+function grigliaAnno(y){
+  const mesi=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
   const fine=new Date(y,11,31);
   let d=new Date(y,0,1);
   d.setDate(d.getDate()-((d.getDay()+6)%7));
-  const mesi=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
   let colonne="", etichette="", meseVisto=-1;
   while(d<=fine){
     let col="", meseCol=-1;
@@ -752,8 +768,8 @@ function renderResoconto(){
       const cur=new Date(d); cur.setDate(d.getDate()+r);
       const dentro=cur.getFullYear()===y, futuro=mezzanotte(cur)>oggi;
       let bg="transparent";
-      if(dentro&&!futuro){bg=cellColor(ymd(cur))||"var(--bg3)";}
-      else if(dentro&&futuro){bg="var(--bg2)";}
+      if(dentro&&!futuro)bg=cellColor(ymd(cur))||"var(--bg3)";
+      else if(dentro&&futuro)bg="var(--bg2)";
       col+=`<span class="cg-cell" style="background:${bg}"></span>`;
       if(dentro&&cur.getDate()<=7&&cur.getMonth()!==meseVisto)meseCol=cur.getMonth();
     }
@@ -762,21 +778,27 @@ function renderResoconto(){
     colonne+=`<div class="cg-col">${col}</div>`;
     d.setDate(d.getDate()+7);
   }
+  return `<div class="anno"><div class="anno-tit">${y}</div>
+    <div class="cg-scroll"><div class="cg-labels">${etichette}</div><div class="cg">${colonne}</div></div></div>`;
+}
+function renderResoconto(){
+  const annoOggi=oggi.getFullYear();
+  const anni=new Set([annoOggi]);
+  for(const k in stato.history){ if(attivo(k)) anni.add(parseInt(k.slice(0,4),10)); }
+  const lista=[...anni].filter(y=>y<=annoOggi).sort((a,b)=>b-a);
   const chips=RES_TRACCE.map(([id,lab])=>`<button class="chip ${resFiltro===id?"on":""}" data-resf="${id}">${lab}</button>`).join("");
   const leg = resFiltro==="tutto"
     ? `<div class="cg-leg">meno<span class="lg" style="background:var(--bg3)"></span><span class="lg" style="background:rgba(225,177,90,.46)"></span><span class="lg" style="background:rgba(225,177,90,.82)"></span><span class="lg" style="background:rgba(225,177,90,1)"></span>più</div>`
     : `<div class="cg-leg"><span class="lg" style="background:var(--bg3)"></span>non fatto<span class="lg" style="background:var(--${resFiltro})"></span>fatto</div>`;
   document.getElementById("modal").innerHTML=`<div class="overlay res" id="ovl"><div class="respage">
     <div class="sheet-head"><div class="t">Resoconto</div><button class="x" id="chiudi">&times;</button></div>
-    <div class="resnav"><button class="cal-nav" data-resy="-1">&lsaquo;</button><span>${y}</span><button class="cal-nav" data-resy="1">&rsaquo;</button></div>
     <div class="chips">${chips}</div>
-    <div class="cg-scroll"><div class="cg-labels">${etichette}</div><div class="cg">${colonne}</div></div>
     ${leg}
+    ${lista.map(grigliaAnno).join("")}
     </div></div>`;
   document.getElementById("chiudi").addEventListener("click",chiudiRecap);
   document.getElementById("ovl").addEventListener("click",e=>{if(e.target.id==="ovl")chiudiRecap();});
   document.querySelectorAll("[data-resf]").forEach(b=>b.addEventListener("click",()=>{resFiltro=b.dataset.resf;renderResoconto();}));
-  document.querySelectorAll("[data-resy]").forEach(b=>b.addEventListener("click",()=>{resAnno+=parseInt(b.dataset.resy,10);renderResoconto();}));
 }
 
 function trofeo(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3M9 20h6M12 14v6M8 20h8"/></svg>`;}
